@@ -1,0 +1,86 @@
+//Includes libraries
+#include <Servo.h>
+#include <HCSR04.h>
+Servo myservo;
+
+//the ultrasound sensor called <distanceSensorHub> in on pins 9 & 10
+UltraSonicDistanceSensor distanceSensorHub(9, 10);
+UltraSonicDistanceSensor distanceSensorKit(2, 3);
+
+// Sets variables
+bool curtainIsOpen = false; // state of the curtain
+unsigned long previousMillis = 0;
+unsigned long distanceHub = 0;
+unsigned long distanceKit = 0;
+int distanceThreshold = 10; //limit distance to interpret as someone walking under the sensor (cm)
+
+void setup() {
+  Serial.begin(9600);
+  previousMillis = millis();
+  myservo.attach(7);
+  //Hacked servo: 90 is immobile, under 90 runs clockwise, over 90 runs counterclockwise
+  myservo.write(90);
+}
+
+void openTheCurtain()
+{
+  myservo.write(70);
+  delay(2000);
+  myservo.write(90);
+  //changes state of curtain
+  curtainIsOpen = !curtainIsOpen;
+}
+
+void closeTheCurtain()
+{
+  myservo.write(130);
+  delay(2000);
+  myservo.write(90);
+  //changes state of curtain
+  curtainIsOpen = !curtainIsOpen;
+}
+
+void loop() {
+  if ( millis() - previousMillis >= 2000UL)   // one second, 'UL' means unsigned long
+  {
+    //Checks and prints the distance read by the sensor
+    previousMillis += 2000UL;
+    //this part runs every second
+
+    //Names distanceKit the distance mesured in the Kitchen with distanceSensorKit
+    distanceKit = distanceSensorKit.measureDistanceCm();
+    Serial.print("distance KITCHEN = ");
+    Serial.print(distanceKit);
+    Serial.print(" cm | ");
+    Serial.println(curtainIsOpen);
+
+    //Names distanceHUB the distance mesured in the Hub with distanceSensorHub
+    distanceHub = distanceSensorHub.measureDistanceCm();
+    Serial.print("distance HUB = ");
+    Serial.print(distanceHub);
+    Serial.print(" cm | ");
+    Serial.println(curtainIsOpen);
+
+    // The curtain is closed <AND> (one of the sensors <OR> the other is tripped)
+    if ((curtainIsOpen == false) && ((distanceHub <= distanceThreshold)||(distanceKit <= distanceThreshold)))
+    {
+      //Calls function openTheCurtain
+      openTheCurtain();
+    }
+    else
+    {
+      //do nothing
+    }
+
+    // The curtain is open <AND> (of the sensors <AND> the other are not tripped)
+    if ((curtainIsOpen == true) && ((distanceHub >= distanceThreshold) && (distanceKit >= distanceThreshold)))
+    {
+      //Calls function closeTheCurtain
+      closeTheCurtain();
+    }
+    else
+    {
+    //do nothing
+    }
+  }
+}
