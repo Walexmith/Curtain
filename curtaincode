@@ -41,11 +41,10 @@ void closeTheCurtain()
 }
 
 void loop() {
-  if ( millis() - previousMillis >= 2000UL)   // one second, 'UL' means unsigned long
+  if ( millis() - previousMillis >= 2000UL)   // two second, 'UL' means unsigned long
   {
-    //Checks and prints the distance read by the sensor
     previousMillis += 2000UL;
-    //this part runs every second
+    //this part runs every two seconds
 
     //Names distanceKit the distance mesured in the Kitchen with distanceSensorKit
     distanceKit = distanceSensorKit.measureDistanceCm();
